@@ -22,7 +22,6 @@ import org.nuxeo.ecm.core.api.Blobs;
 import org.nuxeo.ecm.core.blob.binary.Binary;
 import org.nuxeo.ecm.core.blob.binary.BinaryGarbageCollector;
 import org.nuxeo.ecm.core.blob.binary.BinaryManagerStatus;
-import org.nuxeo.ecm.core.blob.binary.LazyBinary;
 import org.nuxeo.mongodb.blob.GridFSBinaryManager;
 import org.nuxeo.runtime.test.runner.Features;
 import org.nuxeo.runtime.test.runner.FeaturesRunner;
@@ -122,10 +121,9 @@ public class TestBinaryManager {
     /**
      * NOTE THAT THIS TEST WILL REMOVE ALL FILES IN THE BUCKET!!!
      */
-    //@Test
+    @Test
     public void testBinaryManagerGC() throws Exception {
         Binary binary = binaryManager.getBinary(CONTENT_MD5);
-        assertTrue(binary instanceof LazyBinary);
 
         // store binary
         byte[] bytes = CONTENT.getBytes("UTF-8");

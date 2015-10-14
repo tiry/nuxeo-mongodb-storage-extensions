@@ -177,6 +177,8 @@ public class GridFSBinaryManager extends AbstractBinaryManager implements BlobPr
 
         protected volatile long startTime;
 
+        protected static final String MARK_KEY_PREFIX = "gc-mark-key-";
+
         protected String msKey;
 
         @Override
@@ -198,8 +200,18 @@ public class GridFSBinaryManager extends AbstractBinaryManager implements BlobPr
         public void mark(String digest) {
             GridFSDBFile dbFile = gridFS.findOne(digest);
             if (dbFile != null) {
+                // remove previous marks !
+                for (String key : dbFile.keySet()) {
+                    if (key.startsWith(MARK_KEY_PREFIX)) {
+                        // not implemented in GridFSFile !!!
+                        //dbFile.removeField(key);
+                    }
+                }
                 dbFile.put(msKey, true);
                 dbFile.save();
+                status.numBinaries+=1;
+                status.sizeBinaries+= dbFile.getLength();
+
             }
         }
 
@@ -212,7 +224,7 @@ public class GridFSBinaryManager extends AbstractBinaryManager implements BlobPr
             startTime = System.currentTimeMillis();
             status = new BinaryManagerStatus();
 
-            msKey = "ms" + System.currentTimeMillis();
+            msKey = MARK_KEY_PREFIX + System.currentTimeMillis();
         }
 
         @Override
@@ -220,10 +232,13 @@ public class GridFSBinaryManager extends AbstractBinaryManager implements BlobPr
             BasicDBObject query = new BasicDBObject(msKey, new BasicDBObject("$exists", false));
             List<GridFSDBFile> files = gridFS.find(query);
             for (GridFSDBFile file : files) {
+                status.numBinariesGC+=1;
+                status.sizeBinariesGC+= file.getLength();
                 if (delete) {
                     gridFS.remove(file);
                 }
             }
+            startTime=0;
         }
     }
 
