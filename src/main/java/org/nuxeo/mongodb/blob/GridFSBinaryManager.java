@@ -127,13 +127,19 @@ public class GridFSBinaryManager extends AbstractBinaryManager implements BlobPr
 
         GridFSInputFile gFile = gridFS.createFile(stream, true);
         gFile.save();
-
         String digest = gFile.getMD5();
-        gFile.setId(digest);
-        gFile.setFilename(digest);
-        gFile.save();
-
         long length = gFile.getLength();
+
+        // check if the file already existed ?
+        GridFSDBFile existingFile =  gridFS.findOne(digest);
+        if (existingFile==null) {
+            gFile.setFilename(digest);
+            gFile.save();
+        } else {
+            gridFS.remove(gFile);
+        }
+
+        //gFile.setId(digest);
 
         return new GridFSBinary(digest, length, blobProviderId);
 

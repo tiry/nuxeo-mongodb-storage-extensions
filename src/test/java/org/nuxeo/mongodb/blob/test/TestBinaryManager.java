@@ -79,8 +79,6 @@ public class TestBinaryManager {
         for (String id : listObjects()) {
             getBinaryManager().getGridFS().remove(new BasicDBObject("filename", id));
         }
-
-        Thread.sleep(4000);
     }
 
     protected void removeObject(String digest) throws IOException {
@@ -90,7 +88,7 @@ public class TestBinaryManager {
     @Before
     public void setUp() throws Exception {
         binaryManager = getBinaryManager();
-        //removeAllObjects();
+        removeAllObjects();
     }
 
     @Test
@@ -104,43 +102,27 @@ public class TestBinaryManager {
         System.out.println(binary.getDigestAlgorithm());
         System.out.println(binary.getDigest());
 
-        Thread.sleep(1000);
-
-        // get binary (from cache)
+        // check binary is here
         binary = binaryManager.getBinary(CONTENT_MD5);
         assertNotNull(binary);
         assertEquals(bytes.length, binary.getLength());
 
-        Thread.sleep(1000);
-
         assertEquals(CONTENT, toString(binary.getStream()));
 
-        // get binary (clean cache)
-        // binaryManager.fileCache.clear();
-        binary = binaryManager.getBinary(CONTENT_MD5);
-        assertNotNull(binary);
-        assertTrue(binary instanceof LazyBinary);
-        assertEquals(CONTENT, toString(binary.getStream()));
-        assertEquals(bytes.length, binary.getLength());
-        // refetch, now in cache
-        binary = binaryManager.getBinary(CONTENT_MD5);
-        assertFalse(binary instanceof LazyBinary);
-        assertEquals(CONTENT, toString(binary.getStream()));
-        assertEquals(bytes.length, binary.getLength());
+        // check that there is only one entry
+        assertEquals(1, listObjects().size());
 
-        // get binary (clean cache), fetch length first
-        // binaryManager.fileCache.clear();
-        binary = binaryManager.getBinary(CONTENT_MD5);
-        assertNotNull(binary);
-        assertTrue(binary instanceof LazyBinary);
-        assertEquals(bytes.length, binary.getLength());
-        assertEquals(CONTENT, toString(binary.getStream()));
+        // store again
+        binaryManager.getBinary(Blobs.createBlob(CONTENT));
+
+        // check that there is still only one entry
+        assertEquals(1, listObjects().size());
     }
 
     /**
      * NOTE THAT THIS TEST WILL REMOVE ALL FILES IN THE BUCKET!!!
      */
-    @Test
+    //@Test
     public void testBinaryManagerGC() throws Exception {
         Binary binary = binaryManager.getBinary(CONTENT_MD5);
         assertTrue(binary instanceof LazyBinary);
