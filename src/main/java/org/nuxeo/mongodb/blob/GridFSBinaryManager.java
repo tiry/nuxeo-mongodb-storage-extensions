@@ -24,6 +24,7 @@ import org.nuxeo.ecm.core.blob.binary.FileStorage;
 import org.nuxeo.ecm.core.model.Document;
 
 import com.mongodb.BasicDBObject;
+import com.mongodb.DBObject;
 import com.mongodb.MongoClient;
 import com.mongodb.MongoClientURI;
 import com.mongodb.ServerAddress;
@@ -139,8 +140,6 @@ public class GridFSBinaryManager extends AbstractBinaryManager implements BlobPr
             gridFS.remove(gFile);
         }
 
-        //gFile.setId(digest);
-
         return new GridFSBinary(digest, length, blobProviderId);
 
     }
@@ -200,18 +199,12 @@ public class GridFSBinaryManager extends AbstractBinaryManager implements BlobPr
         public void mark(String digest) {
             GridFSDBFile dbFile = gridFS.findOne(digest);
             if (dbFile != null) {
-                // remove previous marks !
-                for (String key : dbFile.keySet()) {
-                    if (key.startsWith(MARK_KEY_PREFIX)) {
-                        // not implemented in GridFSFile !!!
-                        //dbFile.removeField(key);
-                    }
-                }
-                dbFile.put(msKey, true);
+                DBObject meta = new BasicDBObject();
+                meta.put(msKey, true);
+                dbFile.setMetaData(meta);
                 dbFile.save();
                 status.numBinaries+=1;
                 status.sizeBinaries+= dbFile.getLength();
-
             }
         }
 
@@ -229,7 +222,7 @@ public class GridFSBinaryManager extends AbstractBinaryManager implements BlobPr
 
         @Override
         public void stop(boolean delete) {
-            BasicDBObject query = new BasicDBObject(msKey, new BasicDBObject("$exists", false));
+            BasicDBObject query = new BasicDBObject("metadata." + msKey, new BasicDBObject("$exists", false));
             List<GridFSDBFile> files = gridFS.find(query);
             for (GridFSDBFile file : files) {
                 status.numBinariesGC+=1;
