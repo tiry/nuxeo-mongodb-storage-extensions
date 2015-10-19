@@ -98,6 +98,7 @@ public class TestBinaryManager {
         Binary binary = binaryManager.getBinary(Blobs.createBlob(CONTENT));
         assertNotNull(binary);
 
+
         System.out.println(binary.getDigestAlgorithm());
         System.out.println(binary.getDigest());
 

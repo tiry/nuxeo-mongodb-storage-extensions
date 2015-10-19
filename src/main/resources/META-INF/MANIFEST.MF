@@ -1,6 +1,6 @@
 Manifest-Version: 1.0
-Bundle-SymbolicName: org.nuxeo.uidgen.faster
-Bundle-Name: org.nuxeo.uidgen.faster
+Bundle-SymbolicName: org.nuxeo.mongodb.extensions
+Bundle-Name: org.nuxeo.mongodb.extensions
 Bundle-ClassPath: .
 Bundle-ActivationPolicy: lazy
 Bundle-ManifestVersion: 2
